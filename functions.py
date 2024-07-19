@@ -62,14 +62,9 @@ def create_account() -> tuple[bool, tuple[str, str]]:
     options = webdriver.ChromeOptions()
     options.add_argument(f'user-agent={userAgent}')
     
-    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, options=options)    
-    
+    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, options=options)       
     solver = RecaptchaSolver(driver=driver)
-    # driver.get('https://www.google.com/recaptcha/api2/demo')
-    # recaptcha_iframe = driver.find_element(By.XPATH, '//iframe[@title="reCAPTCHA"]')
-    # solver.click_recaptcha_v2(iframe=recaptcha_iframe)
-    
-    
+
     driver.get('https://www.instagram.com/accounts/emailsignup/?hl=en')
        
     se = SeElements(driver)
