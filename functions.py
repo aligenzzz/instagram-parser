@@ -1,6 +1,5 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.by import By
 from selenium_recaptcha_solver import RecaptchaSolver
 from elementium.drivers.se import SeElements
 from fake_useragent import UserAgent
@@ -113,12 +112,15 @@ def create_account() -> tuple[bool, tuple[str, str]]:
         time.sleep(5)
         
         # solving recaptcha
-        recaptcha_iframe = driver.find_element_by_xpath('//iframe[@id="recaptcha-iframe"]')
-        solver.click_recaptcha_v2(iframe=recaptcha_iframe)
+        outer_iframe = driver.find_element_by_xpath('//iframe[@id="recaptcha-iframe"]')
+        driver.switch_to.frame(outer_iframe)
+        inner_iframe = driver.find_element_by_xpath('//iframe[@title="reCAPTCHA"]')
+        solver.click_recaptcha_v2(iframe=inner_iframe)
+        driver.switch_to.default_content()
         se.xpath('//button[contains(text(), "Next")]', wait=True, ttl=2).click()
         time.sleep(35)
         
-        # fillinh the email confirmation code
+        # filling the email confirmation
         confirmation_code = tm.get_confirmation_code()
         se.xpath('//input[@name="email_confirmation_code"]', wait=True, ttl=2).clear().write(confirmation_code)
         se.xpath('//div[contains(text(), "Next")]', wait=True, ttl=2).click()
