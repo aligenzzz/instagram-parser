@@ -1,9 +1,10 @@
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium_recaptcha_solver import RecaptchaSolver
-from elementium.drivers.se import SeElements
 from fake_useragent import UserAgent
-from constants import CHROMEDRIVER_PATH
+from elementium import click, write
+from constants import CHROMEDRIVER_PATH, TTL
 from passlib.pwd import genword
 from mailtm import Email
 from faker import Faker
@@ -53,8 +54,8 @@ class EmailListener:
     def extract_confirmation_code(message: str) -> str:
         match = re.search(r'(\d{6})', message)
         return match.group(1) if match else None
-                
-            
+    
+       
 def create_account() -> tuple[bool, tuple[str, str]]:
     ua = UserAgent(platforms='pc')
     userAgent = ua.random
@@ -66,8 +67,6 @@ def create_account() -> tuple[bool, tuple[str, str]]:
     solver = RecaptchaSolver(driver=driver)
 
     driver.get('https://www.instagram.com/accounts/emailsignup/?hl=en')
-       
-    se = SeElements(driver)
     
     # creating temporary email
     tm = EmailListener()
@@ -83,42 +82,42 @@ def create_account() -> tuple[bool, tuple[str, str]]:
     try:
         # declining cookies
         try:
-            se.xpath('//button[contains(text(), "Decline optional cookies")]', wait=True, ttl=2).click()  
+            click(driver, TTL, '//button[contains(text(), "Decline optional cookies")]')
         except:
             pass
             
         # filling the main data
-        se.xpath('//input[@name="emailOrPhone"]', wait=True, ttl=2).clear().write(email)
-        se.xpath('//input[@name="fullName"]', wait=True, ttl=2).clear().write(full_name)
-        se.xpath('//input[@name="username"]', wait=True, ttl=2).clear().write(username)
-        se.xpath('//input[@name="password"]', wait=True, ttl=2).clear().write(password)
+        write(driver, TTL, '//input[@name="emailOrPhone"]', email)
+        write(driver, TTL, '//input[@name="fullName"]', full_name)
+        write(driver, TTL, '//input[@name="username"]', username)
+        write(driver, TTL, '//input[@name="password"]', password)
         
         try:
-            se.xpath('//button[contains(text(), "Sign up")]', wait=True, ttl=2).click()  
+            click(driver, TTL, '//button[contains(text(), "Sign up")]')
         except:
-            se.xpath('//button[contains(text(), "Next")]', wait=True, ttl=2).click()  
+            click(driver, TTL, '//button[contains(text(), "Next")]')
         
         time.sleep(5)
         
         # filling the birth date (only year)
-        year_select = Select(driver.find_element_by_xpath('//select[@title="Year:"]'))
+        year_select = Select(driver.find_element(By.XPATH, '//select[@title="Year:"]'))
         year_select.select_by_value(str(year))
-        se.xpath('//button[contains(text(), "Next")]', wait=True, ttl=2).click()
-        time.sleep(5)
+        click(driver, TTL, '//button[contains(text(), "Next")]')
+        time.sleep(15)
         
         # solving recaptcha
-        outer_iframe = driver.find_element_by_xpath('//iframe[@id="recaptcha-iframe"]')
+        outer_iframe = driver.find_element(By.XPATH, '//iframe[@id="recaptcha-iframe"]')
         driver.switch_to.frame(outer_iframe)
-        inner_iframe = driver.find_element_by_xpath('//iframe[@title="reCAPTCHA"]')
+        inner_iframe = driver.find_element(By.XPATH, '//iframe[@title="reCAPTCHA"]')
         solver.click_recaptcha_v2(iframe=inner_iframe)
         driver.switch_to.default_content()
-        se.xpath('//button[contains(text(), "Next")]', wait=True, ttl=2).click()
+        click(driver, TTL, '//button[contains(text(), "Next")]')
         time.sleep(35)
         
         # filling the email confirmation
         confirmation_code = tm.get_confirmation_code()
-        se.xpath('//input[@name="email_confirmation_code"]', wait=True, ttl=2).clear().write(confirmation_code)
-        se.xpath('//div[contains(text(), "Next")]', wait=True, ttl=2).click()
+        write(driver, TTL, '//input[@name="email_confirmation_code"]', confirmation_code)
+        click(driver, TTL, '//div[contains(text(), "Next")]')
         time.sleep(5)
         
         return True, (username, password)
@@ -126,5 +125,5 @@ def create_account() -> tuple[bool, tuple[str, str]]:
     except Exception as e:
         print(e)
         driver.quit()
-        return False, (username, password)
+        return False, None
         

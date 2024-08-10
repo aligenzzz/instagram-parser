@@ -1,6 +1,5 @@
-selenium==3.141.0
 selenium_recaptcha_solver==1.9.0
-elementium==2.0.2
+selenium==4.8.0
 fake_useragent==1.5.1
 passlib==1.7.4
 mailtm==0.0.81
