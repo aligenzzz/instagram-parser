@@ -4,3 +4,5 @@ fake_useragent==1.5.1
 passlib==1.7.4
 mailtm==0.0.81
 faker==26.0.0
+Flask==3.0.3
+python-dotenv==1.0.1

@@ -4,14 +4,18 @@ from selenium.webdriver.support.ui import Select
 from selenium_recaptcha_solver import RecaptchaSolver
 from fake_useragent import UserAgent
 from elementium import click, write
-from constants import CHROMEDRIVER_PATH, TTL
+from config import CHROMEDRIVER_PATH
+from constants import TTL
 from passlib.pwd import genword
 from mailtm import Email
 from faker import Faker
+import logging
 import random
 import string
 import time
 import re
+
+logger = logging.getLogger(__name__)
     
     
 def generate_full_name() -> str:
@@ -56,7 +60,8 @@ class EmailListener:
         return match.group(1) if match else None
     
        
-def create_account() -> tuple[bool, tuple[str, str]]:
+def create_account(full_name: str = None, username: str = None, 
+                   password: str = None, year: str = None) -> tuple[bool, tuple[str, str]]:
     ua = UserAgent(platforms='pc')
     userAgent = ua.random
     
@@ -74,12 +79,14 @@ def create_account() -> tuple[bool, tuple[str, str]]:
     email = tm.email
     
     # generating data
-    full_name = generate_full_name()
-    username = generate_username()
-    password = generate_password()
-    year = generate_year()
+    full_name = full_name or generate_full_name()
+    username = username or generate_username()
+    password = password or generate_password()
+    year = year or generate_year()
     
     try:
+        logging.info(f'Starting account creation for: {username}')
+        
         # declining cookies
         try:
             click(driver, TTL, '//button[contains(text(), "Decline optional cookies")]')
@@ -118,12 +125,15 @@ def create_account() -> tuple[bool, tuple[str, str]]:
         confirmation_code = tm.get_confirmation_code()
         write(driver, TTL, '//input[@name="email_confirmation_code"]', confirmation_code)
         click(driver, TTL, '//div[contains(text(), "Next")]')
-        time.sleep(5)
+        time.sleep(60)
+        
+        driver.quit()
+        logging.info(f'Account created successfully for: {username}')
         
         return True, (username, password)
         
     except Exception as e:
-        print(e)
+        logging.error(f'Error creating account: {str(e)}')
         driver.quit()
-        return False, None
+        return False, str(e)
         
