@@ -3,15 +3,14 @@ from flask import Flask, jsonify, request
 from config import HOST, PORT
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-
-
-@app.route('/')
-def hello():
-    return "Hello, World!"
 
 
 @app.route('/create_account', methods=['POST'])
